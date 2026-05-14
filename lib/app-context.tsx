@@ -10,7 +10,7 @@ import {
 } from "react";
 
 export type UserRole = "employee" | "hr" | null;
-export type AppView = "home" | "login" | "register" | "employee-portal" | "hr-dashboard";
+export type AppView = "home" | "login" | "register" | "employee-portal" | "hr-dashboard" | "verify-email";
 export type Language = "en" | "ar";
 export type AuthMode = "login" | "signup";
 export type UserType = "employee" | "hr";

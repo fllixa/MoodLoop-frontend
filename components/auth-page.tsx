@@ -123,19 +123,19 @@ export function AuthPage() {
     const lowercase = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
     const special = "@#$%^&*!";
-    
+
     let pwd = "";
     pwd += uppercase[Math.floor(Math.random() * uppercase.length)];
     pwd += lowercase[Math.floor(Math.random() * lowercase.length)];
     pwd += numbers[Math.floor(Math.random() * numbers.length)];
     pwd += special[Math.floor(Math.random() * special.length)];
-    
+
     // Add 8 more random characters from all available characters
     const allChars = uppercase + lowercase + numbers + special;
     for (let i = 0; i < 8; i++) {
       pwd += allChars[Math.floor(Math.random() * allChars.length)];
     }
-    
+
     return pwd.split('').sort(() => Math.random() - 0.5).join('');
   };
 
@@ -145,7 +145,7 @@ export function AuthPage() {
     if (!registeredUsers[email]) {
       return {
         type: "email_not_registered",
-        message: language === "en" 
+        message: language === "en"
           ? "This email is not registered. Please check or sign up."
           : "هذا البريد الإلكتروني غير مسجل. يرجى التحقق أو التسجيل."
       };
@@ -174,9 +174,15 @@ export function AuthPage() {
     setLanguage(language === "en" ? "ar" : "en");
   };
 
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+  const validateEmail = (email: string): boolean => {
+    // Check if email contains '@' symbol
+    if (!email.includes("@")) {
+      return false;
+    }
+    
+    // Check if email contains valid domain extension (including .com, .org, .net, etc.)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const triggerShake = (fields: string[]) => {
@@ -207,7 +213,7 @@ export function AuthPage() {
     } else if (authMode === "signup") {
       // For signup, enforce strong password requirements
       if (!passwordStrength.hasUppercase || !passwordStrength.hasLowercase || !passwordStrength.hasNumber || !passwordStrength.hasSpecial) {
-        newErrors.password = language === "en" 
+        newErrors.password = language === "en"
           ? "Password must contain uppercase, lowercase, number, and special character"
           : "يجب أن تحتوي كلمة المرور على أحرف كبيرة وصغيرة ورقم وحرف خاص";
         invalidFields.push("password");
@@ -229,14 +235,12 @@ export function AuthPage() {
 
     return true;
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError({ type: null, message: "" });
 
     if (!validateForm()) return;
 
-    // Validate login credentials if in login mode
     if (authMode === "login") {
       const credentialError = validateLoginCredentials(email, password);
       if (credentialError.type) {
@@ -247,16 +251,21 @@ export function AuthPage() {
       }
     }
 
+    if (authMode === "signup") {
+      setView("verify-email");
+      return;
+    }
+
     if (userType === "employee") {
       setUser({
-        name: authMode === "signup" ? name : registeredUsers[email]?.name || email.split("@")[0],
+        name: registeredUsers[email]?.name || email.split("@")[0],
         email,
         department,
         role: "employee",
       });
     } else {
       setUser({
-        name: authMode === "signup" ? name : registeredUsers[email]?.name || email.split("@")[0],
+        name: registeredUsers[email]?.name || email.split("@")[0],
         email,
         role: "hr",
         position: "HR Manager",
@@ -265,7 +274,6 @@ export function AuthPage() {
       });
     }
   };
-
   const shakeAnimation = {
     x: [0, -10, 10, -10, 10, 0],
     transition: { duration: 0.4 },
@@ -412,10 +420,10 @@ export function AuthPage() {
           <ArrowLeft className="h-4 w-4" strokeWidth={2} />
           {language === "en" ? "Back" : "العودة"}
         </motion.button>
-        
+
         {/* Spacer to push controls to the far right */}
         <div className="flex-1" />
-        
+
         {/* Right side - Controls */}
         <div className="flex items-center gap-6 flex-shrink-0">
           <ThemeToggle variant="inline" />
@@ -434,448 +442,447 @@ export function AuthPage() {
       <div className="container mx-auto px-4 py-8 md:py-0 relative z-10 flex items-center justify-center min-h-screen">
         <div className="w-full max-w-xl">
           {/* Login Card */}
-            <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
-              <CardContent className="p-8 space-y-6">
-                <div className="text-center space-y-2">
-                  <Image
-                    src="/assets/logo.png"
-                    alt="MoodLoop"
-                    width={140}
-                    height={36}
-                    className="object-contain mx-auto"
-                  />
-                  <h2 className="text-xl font-semibold text-foreground mt-4">
-                    {step === "select-role"
-                      ? t.getStarted
-                      : authMode === "login"
-                        ? t.loginToAccount
-                        : t.getStarted}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {step === "select-role"
-                      ? t.chooseRole
-                      : authMode === "login"
-                        ? t.enterCredentials
-                        : t.chooseRole}
-                  </p>
-                </div>
+          <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
+            <CardContent className="p-8 space-y-6">
+              <div className="text-center space-y-2">
+                <Image
+                  src="/assets/logo.png"
+                  alt="MoodLoop"
+                  width={140}
+                  height={36}
+                  className="object-contain mx-auto"
+                />
+                <h2 className="text-xl font-semibold text-foreground mt-4">
+                  {step === "select-role"
+                    ? t.getStarted
+                    : authMode === "login"
+                      ? t.loginToAccount
+                      : t.getStarted}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {step === "select-role"
+                    ? t.chooseRole
+                    : authMode === "login"
+                      ? t.enterCredentials
+                      : t.chooseRole}
+                </p>
+              </div>
 
-                {/* Step-based content */}
-                <AnimatePresence mode="wait">
-                  {step === "select-role" ? (
-                    <motion.div
-                      key="select-role"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.25 }}
-                      className="space-y-3"
+              {/* Step-based content */}
+              <AnimatePresence mode="wait">
+                {step === "select-role" ? (
+                  <motion.div
+                    key="select-role"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-3"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setUserType("employee");
+                        setStep("form");
+                      }}
+                      className="w-full p-4 rounded-xl border-2 border-border hover:border-primary/50 transition-all group text-left flex items-center gap-4 cursor-pointer"
                     >
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setUserType("employee");
-                          setStep("form");
-                        }}
-                        className="w-full p-4 rounded-xl border-2 border-border hover:border-primary/50 transition-all group text-left flex items-center gap-4 cursor-pointer"
-                      >
-                        <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                          <Users
-                            className="h-6 w-6 text-primary"
-                            strokeWidth={1.5}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">
-                            {t.employeePortal}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {t.employeeDesc}
-                          </p>
-                        </div>
-                        <ArrowRight
-                          className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"
+                      <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                        <Users
+                          className="h-6 w-6 text-primary"
                           strokeWidth={1.5}
                         />
-                      </motion.button>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">
+                          {t.employeePortal}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {t.employeeDesc}
+                        </p>
+                      </div>
+                      <ArrowRight
+                        className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"
+                        strokeWidth={1.5}
+                      />
+                    </motion.button>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setUserType("hr");
-                          setStep("form");
-                        }}
-                        className="w-full p-4 rounded-xl border-2 border-border hover:border-primary/50 transition-all group text-left flex items-center gap-4 cursor-pointer"
-                      >
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Building2
-                            className="h-6 w-6 text-primary"
-                            strokeWidth={1.5}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">
-                            {t.hrPortal}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {t.hrDesc}
-                          </p>
-                        </div>
-                        <ArrowRight
-                          className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"
-                          strokeWidth={1.5}
-                        />
-                      </motion.button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="form"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.25 }}
-                      className="space-y-4"
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setUserType("hr");
+                        setStep("form");
+                      }}
+                      className="w-full p-4 rounded-xl border-2 border-border hover:border-primary/50 transition-all group text-left flex items-center gap-4 cursor-pointer"
                     >
-                      {/* Back button */}
-                      <button
-                        onClick={() => {
-                          setStep("select-role");
-                          setErrors({});
-                        }}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                      >
-                        <ArrowRight
-                          className="h-4 w-4 rotate-180"
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Building2
+                          className="h-6 w-6 text-primary"
                           strokeWidth={1.5}
                         />
-                        {language === "en" ? "Change role" : "تغيير الدور"}
-                      </button>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">
+                          {t.hrPortal}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {t.hrDesc}
+                        </p>
+                      </div>
+                      <ArrowRight
+                        className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"
+                        strokeWidth={1.5}
+                      />
+                    </motion.button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                  >
+                    {/* Back button */}
+                    <button
+                      onClick={() => {
+                        setStep("select-role");
+                        setErrors({});
+                      }}
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    >
+                      <ArrowRight
+                        className="h-4 w-4 rotate-180"
+                        strokeWidth={1.5}
+                      />
+                      {language === "en" ? "Change role" : "تغيير الدور"}
+                    </button>
 
-                      {/* Auth Form */}
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <AnimatePresence mode="wait">
-                          {authMode === "signup" && (
+                    {/* Auth Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <AnimatePresence mode="wait">
+                        {authMode === "signup" && (
+                          <motion.div
+                            key="name-field"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-2"
+                          >
+                            <Label htmlFor="name">{t.fullName}</Label>
                             <motion.div
-                              key="name-field"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="space-y-2"
+                              animate={
+                                shakeFields.includes("name")
+                                  ? shakeAnimation
+                                  : {}
+                              }
                             >
-                              <Label htmlFor="name">{t.fullName}</Label>
-                              <motion.div
-                                animate={
-                                  shakeFields.includes("name")
-                                    ? shakeAnimation
-                                    : {}
+                              <Input
+                                id="name"
+                                placeholder={
+                                  language === "en"
+                                    ? "Enter your name"
+                                    : "أدخل اسمك"
                                 }
-                              >
-                                <Input
-                                  id="name"
-                                  placeholder={
-                                    language === "en"
-                                      ? "Enter your name"
-                                      : "أدخل اسمك"
-                                  }
-                                  value={name}
-                                  onChange={(e) => {
-                                    setName(e.target.value);
-                                    if (errors.name)
-                                      setErrors({ ...errors, name: undefined });
-                                  }}
-                                  className={
-                                    errors.name
-                                      ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
-                                      : ""
-                                  }
-                                />
-                              </motion.div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="email">{t.email}</Label>
-                          <motion.div
-                            animate={
-                              shakeFields.includes("email")
-                                ? shakeAnimation
-                                : {}
-                            }
-                          >
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="your.email@company.com"
-                              value={email}
-                              onChange={(e) => {
-                                setEmail(e.target.value);
-                                if (errors.email)
-                                  setErrors({ ...errors, email: undefined });
-                                if (authError.type)
-                                  setAuthError({ type: null, message: "" });
-                              }}
-                              className={
-                                errors.email || authError.type === "email_not_registered"
-                                  ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
-                                  : ""
-                              }
-                            />
-                          </motion.div>
-                          {(errors.email || authError.type === "email_not_registered") && (
-                            <motion.p
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              className="text-xs text-[#FF4D4D] font-medium"
-                            >
-                              {authError.type === "email_not_registered"
-                                ? authError.message
-                                : errors.email}
-                            </motion.p>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="password">{t.password}</Label>
-                            {authMode === "login" && (
-                              <button
-                                type="button"
-                                onClick={() => setShowForgotPassword(true)}
-                                className="text-xs font-medium text-[#614EA9] hover:text-[#7B5FB2] transition-colors cursor-pointer hover:underline"
-                              >
-                                {language === "en" ? "Forgot Password?" : "هل نسيت كلمة المرور؟"}
-                              </button>
-                            )}
-                            {authMode === "signup" && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const strongPwd = generateStrongPassword();
-                                  setPassword(strongPwd);
-                                  setPasswordStrength(checkPasswordStrength(strongPwd));
+                                value={name}
+                                onChange={(e) => {
+                                  setName(e.target.value);
+                                  if (errors.name)
+                                    setErrors({ ...errors, name: undefined });
                                 }}
-                                className="text-xs px-2 py-1 rounded text-[#614EA9] hover:bg-secondary/50 transition-colors cursor-pointer"
-                              >
-                                💡 {language === "en" ? "Suggest Strong" : "اقتراح قوي"}
-                              </button>
-                            )}
-                          </div>
-                          <motion.div
-                            animate={
-                              shakeFields.includes("password")
-                                ? shakeAnimation
-                                : {}
+                                className={
+                                  errors.name
+                                    ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
+                                    : ""
+                                }
+                              />
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">{t.email}</Label>
+                        <motion.div
+                          animate={
+                            shakeFields.includes("email")
+                              ? shakeAnimation
+                              : {}
+                          }
+                        >
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="your.email@company.com"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email)
+                                setErrors({ ...errors, email: undefined });
+                              if (authError.type)
+                                setAuthError({ type: null, message: "" });
+                            }}
+                            className={
+                              errors.email || authError.type === "email_not_registered"
+                                ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
+                                : ""
                             }
-                            className="relative"
+                          />
+                        </motion.div>
+                        {(errors.email || authError.type === "email_not_registered") && (
+                          <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-xs text-[#FF4D4D] font-medium"
                           >
-                            <Input
-                              id="password"
-                              type={showPassword ? "text" : "password"}
-                              placeholder={
-                                language === "en"
-                                  ? "Enter your password"
-                                  : "أدخل كلمة المرور"
-                              }
-                              value={password}
-                              onChange={(e) => {
-                                setPassword(e.target.value);
-                                setPasswordStrength(checkPasswordStrength(e.target.value));
-                                if (errors.password)
-                                  setErrors({ ...errors, password: undefined });
-                                if (authError.type)
-                                  setAuthError({ type: null, message: "" });
-                              }}
-                              className={`${
-                                errors.password || authError.type === "incorrect_password"
-                                  ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
-                                  : ""
-                              } pr-10`}
-                            />
+                            {authError.type === "email_not_registered"
+                              ? authError.message
+                              : errors.email}
+                          </motion.p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="password">{t.password}</Label>
+                          {authMode === "login" && (
                             <button
                               type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#614EA9] hover:text-[#2C2A4A] dark:hover:text-[#8B7BC9] transition-colors cursor-pointer"
-                              title={showPassword ? (language === "en" ? "Hide password" : "إخفاء كلمة المرور") : (language === "en" ? "Show password" : "عرض كلمة المرور")}
+                              onClick={() => setShowForgotPassword(true)}
+                              className="text-xs font-medium text-[#614EA9] hover:text-[#7B5FB2] transition-colors cursor-pointer hover:underline"
                             >
-                              {showPassword ? (
-                                <EyeOff className="h-5 w-5" strokeWidth={1.5} />
-                              ) : (
-                                <Eye className="h-5 w-5" strokeWidth={1.5} />
-                              )}
+                              {language === "en" ? "Forgot Password?" : "هل نسيت كلمة المرور؟"}
                             </button>
-                          </motion.div>
-                          {(errors.password || authError.type === "incorrect_password") && (
-                            <motion.p
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              className="text-xs text-[#FF4D4D] font-medium"
-                            >
-                              {authError.type === "incorrect_password"
-                                ? authError.message
-                                : errors.password}
-                            </motion.p>
                           )}
-
-                          {/* Password Strength Checklist - Show during signup */}
                           {authMode === "signup" && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="mt-3 p-3 bg-secondary/30 rounded-lg space-y-2"
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const strongPwd = generateStrongPassword();
+                                setPassword(strongPwd);
+                                setPasswordStrength(checkPasswordStrength(strongPwd));
+                              }}
+                              className="text-xs px-2 py-1 rounded text-[#614EA9] hover:bg-secondary/50 transition-colors cursor-pointer"
                             >
-                              <p className="text-xs font-semibold text-muted-foreground">
-                                {language === "en" ? "Password Requirements:" : "متطلبات كلمة المرور:"}
-                              </p>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasUppercase ? "bg-green-500/80" : "bg-gray-300/40"}`}>
-                                    {passwordStrength.hasUppercase && <span className="text-white text-xs">✓</span>}
-                                  </span>
-                                  <span className={passwordStrength.hasUppercase ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
-                                    {language === "en" ? "Uppercase letter (A-Z)" : "حرف كبير (A-Z)"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasLowercase ? "bg-green-500/80" : "bg-gray-300/40"}`}>
-                                    {passwordStrength.hasLowercase && <span className="text-white text-xs">✓</span>}
-                                  </span>
-                                  <span className={passwordStrength.hasLowercase ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
-                                    {language === "en" ? "Lowercase letter (a-z)" : "حرف صغير (a-z)"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasNumber ? "bg-green-500/80" : "bg-gray-300/40"}`}>
-                                    {passwordStrength.hasNumber && <span className="text-white text-xs">✓</span>}
-                                  </span>
-                                  <span className={passwordStrength.hasNumber ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
-                                    {language === "en" ? "Number (0-9)" : "رقم (0-9)"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasSpecial ? "bg-green-500/80" : "bg-gray-300/40"}`}>
-                                    {passwordStrength.hasSpecial && <span className="text-white text-xs">✓</span>}
-                                  </span>
-                                  <span className={passwordStrength.hasSpecial ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
-                                    {language === "en" ? "Special character (@, #, $, %, etc.)" : "حرف خاص (@, #, $, %, إلخ)"}
-                                  </span>
-                                </div>
-                              </div>
-                            </motion.div>
+                              💡 {language === "en" ? "Suggest Strong" : "اقتراح قوي"}
+                            </button>
                           )}
                         </div>
-
-                        <AnimatePresence mode="wait">
-                          {authMode === "signup" && userType === "employee" && (
-                            <motion.div
-                              key="department-field"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="space-y-2"
-                            >
-                              <Label htmlFor="department">{t.department}</Label>
-                              <motion.div
-                                animate={
-                                  shakeFields.includes("department")
-                                    ? shakeAnimation
-                                    : {}
-                                }
-                              >
-                                <Select
-                                  value={department}
-                                  onValueChange={(val) => {
-                                    setDepartment(val);
-                                    if (errors.department)
-                                      setErrors({
-                                        ...errors,
-                                        department: undefined,
-                                      });
-                                  }}
-                                >
-                                  <SelectTrigger
-                                    className={
-                                      errors.department
-                                        ? "border-[#FF4D4D]"
-                                        : ""
-                                    }
-                                  >
-                                    <SelectValue
-                                      placeholder={
-                                        language === "en"
-                                          ? "Select department"
-                                          : "اختر القسم"
-                                      }
-                                    />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {departments.map((dept) => (
-                                      <SelectItem
-                                        key={dept}
-                                        value={dept}
-                                        className="cursor-pointer"
-                                      >
-                                        {dept}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </motion.div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <Button
-                          type="submit"
-                          className="w-full h-12 text-base font-semibold cursor-pointer"
+                        <motion.div
+                          animate={
+                            shakeFields.includes("password")
+                              ? shakeAnimation
+                              : {}
+                          }
+                          className="relative"
                         >
-                          {authMode === "login" ? t.login : t.createAccount}
-                        </Button>
-                      </form>
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder={
+                              language === "en"
+                                ? "Enter your password"
+                                : "أدخل كلمة المرور"
+                            }
+                            value={password}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              setPasswordStrength(checkPasswordStrength(e.target.value));
+                              if (errors.password)
+                                setErrors({ ...errors, password: undefined });
+                              if (authError.type)
+                                setAuthError({ type: null, message: "" });
+                            }}
+                            className={`${errors.password || authError.type === "incorrect_password"
+                                ? "border-[#FF4D4D] focus-visible:ring-[#FF4D4D]"
+                                : ""
+                              } pr-10`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#614EA9] hover:text-[#2C2A4A] dark:hover:text-[#8B7BC9] transition-colors cursor-pointer"
+                            title={showPassword ? (language === "en" ? "Hide password" : "إخفاء كلمة المرور") : (language === "en" ? "Show password" : "عرض كلمة المرور")}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-5 w-5" strokeWidth={1.5} />
+                            ) : (
+                              <Eye className="h-5 w-5" strokeWidth={1.5} />
+                            )}
+                          </button>
+                        </motion.div>
+                        {(errors.password || authError.type === "incorrect_password") && (
+                          <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-xs text-[#FF4D4D] font-medium"
+                          >
+                            {authError.type === "incorrect_password"
+                              ? authError.message
+                              : errors.password}
+                          </motion.p>
+                        )}
 
-                      {/* Toggle Auth Mode */}
-                      <div className="text-center">
-                        <button
-                          onClick={() => {
-                            setAuthMode(
-                              authMode === "login" ? "signup" : "login",
-                            );
-                            setErrors({});
-                          }}
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer hover:underline"
-                        >
-                          {authMode === "login"
-                            ? t.dontHaveAccount
-                            : t.alreadyHaveAccount}{" "}
-                          <span className="text-primary font-medium">
-                            {authMode === "login" ? t.signup : t.login}
-                          </span>
-                        </button>
+                        {/* Password Strength Checklist - Show during signup */}
+                        {authMode === "signup" && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-3 p-3 bg-secondary/30 rounded-lg space-y-2"
+                          >
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              {language === "en" ? "Password Requirements:" : "متطلبات كلمة المرور:"}
+                            </p>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasUppercase ? "bg-green-500/80" : "bg-gray-300/40"}`}>
+                                  {passwordStrength.hasUppercase && <span className="text-white text-xs">✓</span>}
+                                </span>
+                                <span className={passwordStrength.hasUppercase ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
+                                  {language === "en" ? "Uppercase letter (A-Z)" : "حرف كبير (A-Z)"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasLowercase ? "bg-green-500/80" : "bg-gray-300/40"}`}>
+                                  {passwordStrength.hasLowercase && <span className="text-white text-xs">✓</span>}
+                                </span>
+                                <span className={passwordStrength.hasLowercase ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
+                                  {language === "en" ? "Lowercase letter (a-z)" : "حرف صغير (a-z)"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasNumber ? "bg-green-500/80" : "bg-gray-300/40"}`}>
+                                  {passwordStrength.hasNumber && <span className="text-white text-xs">✓</span>}
+                                </span>
+                                <span className={passwordStrength.hasNumber ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
+                                  {language === "en" ? "Number (0-9)" : "رقم (0-9)"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className={`w-4 h-4 rounded flex items-center justify-center ${passwordStrength.hasSpecial ? "bg-green-500/80" : "bg-gray-300/40"}`}>
+                                  {passwordStrength.hasSpecial && <span className="text-white text-xs">✓</span>}
+                                </span>
+                                <span className={passwordStrength.hasSpecial ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>
+                                  {language === "en" ? "Special character (@, #, $, %, etc.)" : "حرف خاص (@, #, $, %, إلخ)"}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
-                <div className="pt-4 border-t border-border">
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Lock
-                      className="h-4 w-4 text-amber-500"
-                      strokeWidth={1.5}
-                    />
-                    {t.dataSecure}
-                  </div>
+                      <AnimatePresence mode="wait">
+                        {authMode === "signup" && userType === "employee" && (
+                          <motion.div
+                            key="department-field"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-2"
+                          >
+                            <Label htmlFor="department">{t.department}</Label>
+                            <motion.div
+                              animate={
+                                shakeFields.includes("department")
+                                  ? shakeAnimation
+                                  : {}
+                              }
+                            >
+                              <Select
+                                value={department}
+                                onValueChange={(val) => {
+                                  setDepartment(val);
+                                  if (errors.department)
+                                    setErrors({
+                                      ...errors,
+                                      department: undefined,
+                                    });
+                                }}
+                              >
+                                <SelectTrigger
+                                  className={
+                                    errors.department
+                                      ? "border-[#FF4D4D]"
+                                      : ""
+                                  }
+                                >
+                                  <SelectValue
+                                    placeholder={
+                                      language === "en"
+                                        ? "Select department"
+                                        : "اختر القسم"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {departments.map((dept) => (
+                                    <SelectItem
+                                      key={dept}
+                                      value={dept}
+                                      className="cursor-pointer"
+                                    >
+                                      {dept}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <Button
+                        type="submit"
+                        className="w-full h-12 text-base font-semibold cursor-pointer"
+                      >
+                        {authMode === "login" ? t.login : t.createAccount}
+                      </Button>
+                    </form>
+
+                    {/* Toggle Auth Mode */}
+                    <div className="text-center">
+                      <button
+                        onClick={() => {
+                          setAuthMode(
+                            authMode === "login" ? "signup" : "login",
+                          );
+                          setErrors({});
+                        }}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer hover:underline"
+                      >
+                        {authMode === "login"
+                          ? t.dontHaveAccount
+                          : t.alreadyHaveAccount}{" "}
+                        <span className="text-primary font-medium">
+                          {authMode === "login" ? t.signup : t.login}
+                        </span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="pt-4 border-t border-border">
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Lock
+                    className="h-4 w-4 text-amber-500"
+                    strokeWidth={1.5}
+                  />
+                  {t.dataSecure}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Contact Us Section */}
       <ContactUs />
-      
+
       {/* Floating Contact Button */}
       <FloatingContactButton />
 
